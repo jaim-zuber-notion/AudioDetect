@@ -5,13 +5,10 @@
 //  Created by Jaim Zuber on 3/24/25.
 //
 
-//import CoreAudio
 import AppKit
 import AudioToolbox
 import Foundation
 import os
-
-print("Hello, World!")
 
 enum AudioError: Error {
   case readError(String)
@@ -363,29 +360,11 @@ let runningApplications = NSWorkspace.shared.runningApplications
 print("Starting process monitor...")
 while true {
     do {
-        let audioObjectIDs = try AudioObjectID.readProcessList()
-      let runningAudioObjectIDs = audioObjectIDs.filter {$0.readProcessIsRunning() }
+      let runningBundleIDs = try returnActiveAudioProcesses()
 
-      let updatedProcesses: [AudioProcess] = runningAudioObjectIDs.compactMap { objectID in
-          do {
-              let proc = try AudioProcess(objectID: objectID, runningApplications: runningApplications)
-
-              #if DEBUG
-              if UserDefaults.standard.bool(forKey: "ACDumpProcessInfo") {
-                  logger.debug("[PROCESS] \(String(describing: proc))")
-              }
-              #endif
-
-              return proc
-          } catch {
-              logger.warning("Failed to initialize process with object ID #\(objectID, privacy: .public): \(error, privacy: .public)")
-              return nil
-          }
-      }.filter { $0.audioActive }
-
-      if !updatedProcesses.isEmpty {
-        updatedProcesses.forEach {
-          logger.debug("\(String(describing: $0.bundleID)) is active")
+      if !runningBundleIDs.isEmpty {
+        runningBundleIDs.forEach {
+          logger.debug("\($0) is active")
         }
       } else {
         logger.debug("No running processes")
