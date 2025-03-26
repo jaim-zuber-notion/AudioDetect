@@ -96,7 +96,7 @@ extension AudioObjectID {
     }
 
     func readProcessIsRunning() -> Bool {
-        (try? readBool(kAudioProcessPropertyIsRunning)) ?? false
+        (try? readBool(kAudioProcessPropertyIsRunningInput)) ?? false
     }
 
     /*
