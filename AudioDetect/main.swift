@@ -336,6 +336,28 @@ private extension String {
     }
 }
 
+func returnActiveAudioProcesses() throws -> [String] {
+    let audioObjectIDs = try AudioObjectID.readProcessList()
+      .filter { $0.readProcessIsRunning() }
+      .compactMap { objectID in
+        do {
+            let proc = try AudioProcess(objectID: objectID, runningApplications: runningApplications)
+
+            #if DEBUG
+            if UserDefaults.standard.bool(forKey: "ACDumpProcessInfo") {
+                logger.debug("[PROCESS] \(String(describing: proc))")
+            }
+            #endif
+
+            return proc
+        } catch {
+            logger.warning("Failed to initialize process with object ID #\(objectID, privacy: .public): \(error, privacy: .public)")
+            return nil
+        }
+      }.filter { $0.audioActive }
+  return audioObjectIDs.compactMap { $0.bundleID}
+}
+
 let runningApplications = NSWorkspace.shared.runningApplications
 
 print("Starting process monitor...")
